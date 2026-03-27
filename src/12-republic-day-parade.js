@@ -111,9 +111,115 @@
  *   // => true
  */
 export function createContingent(name, type, state, members) {
-  // Your code here
+  if (
+    typeof name !== "string" ||
+    typeof type !== "string" ||
+    typeof state !== "string" ||
+    !Array.isArray(members)
+  ) {
+    return null;
+  }
+
+  const contingent = document.createElement("div");
+  contingent.classList.add("contingent");
+  contingent.dataset.name = name;
+  contingent.dataset.type = type;
+  contingent.dataset.state = state;
+
+  const title = document.createElement("h3");
+  title.textContent = name;
+
+  const typeSpan = document.createElement("span");
+  typeSpan.classList.add("type");
+  typeSpan.textContent = type;
+
+  const stateSpan = document.createElement("span");
+  stateSpan.classList.add("state");
+  stateSpan.textContent = state;
+
+  const list = document.createElement("ul");
+  members.forEach((member) => {
+    const li = document.createElement("li");
+    li.textContent = member;
+    list.appendChild(li);
+  });
+
+  contingent.append(title, typeSpan, stateSpan, list);
+  return contingent;
 }
 
 export function setupParadeDashboard(container) {
-  // Your code here
+  if (!container) return null;
+
+  return {
+    addContingent({ name, type, state, members }) {
+      const element = createContingent(name, type, state, members);
+      if (element) {
+        container.appendChild(element);
+        return element;
+      }
+      return null;
+    },
+
+    removeContingent(name) {
+      const contingent = container.querySelector(
+        `.contingent[data-name="${name}"]`,
+      );
+      if (contingent) {
+        container.removeChild(contingent);
+        return true;
+      }
+      return false;
+    },
+
+    moveContingent(name, direction) {
+      const contingent = container.querySelector(
+        `.contingent[data-name="${name}"]`,
+      );
+      if (!contingent) return false;
+
+      if (direction === "up") {
+        const prev = contingent.previousElementSibling;
+        if (!prev) return false;
+        container.insertBefore(contingent, prev);
+        return true;
+      } else if (direction === "down") {
+        const next = contingent.nextElementSibling;
+        if (!next) return false;
+        container.insertBefore(next, contingent);
+        return true;
+      }
+      return false;
+    },
+
+    getContingentsByType(type) {
+      return Array.from(
+        container.querySelectorAll(`.contingent[data-type="${type}"]`),
+      );
+    },
+
+    highlightState(state) {
+      const contingents = container.querySelectorAll(".contingent");
+      let count = 0;
+      contingents.forEach((c) => {
+        if (c.dataset.state === state) {
+          c.classList.add("highlight");
+          count++;
+        } else {
+          c.classList.remove("highlight");
+        }
+      });
+      return count;
+    },
+
+    getParadeOrder() {
+      return Array.from(container.querySelectorAll(".contingent")).map(
+        (c) => c.dataset.name,
+      );
+    },
+
+    getTotalMembers() {
+      return container.querySelectorAll(".contingent ul li").length;
+    },
+  };
 }
